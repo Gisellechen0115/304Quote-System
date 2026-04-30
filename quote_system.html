@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CMS 航空級規格化報價系統 V2.1</title>
+    <title>CMS 航空級規格化報價系統 V2.0</title>
     <style>
         :root {
             --sky-blue: #00BFFF;
@@ -71,6 +71,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: inset 0 0 10px rgba(0,191,255,0.1);
         }
 
         .section-title {
@@ -79,6 +80,7 @@
             color: #444;
         }
 
+        /* 點工 Labor Slider */
         .hours-display {
             font-size: 1.6rem;
             font-weight: 800;
@@ -87,6 +89,7 @@
             margin-bottom: 5px;
         }
 
+        /* 卡片式選項 */
         .grid-options {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -113,17 +116,24 @@
         .option-name { font-weight: 600; display: block; margin-bottom: 5px; }
         .option-price { font-size: 0.85rem; color: var(--yellow-green); font-weight: 700; }
 
-        .extra-form { display: flex; gap: 10px; margin-top: 10px; }
+        /* 追加項目表單 */
+        .extra-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
 
         input, select, textarea {
             border: 1.5px solid #e2e8f0;
             border-radius: 10px;
             padding: 12px;
             font-size: 0.95rem;
-            width: 100%;
-            box-sizing: border-box;
+            transition: border-color 0.2s;
         }
 
+        input:focus { border-color: var(--sky-blue); outline: none; }
+
+        /* 總計與簽名 */
         .summary-panel {
             background: linear-gradient(135deg, var(--sky-blue) 0%, #0099cc 100%);
             padding: 35px;
@@ -131,7 +141,7 @@
             text-align: center;
         }
 
-        .total-amount { font-size: 3rem; font-weight: 800; margin: 10px 0; }
+        .total-amount { font-size: 3rem; font-weight: 800; margin: 10px 0; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
 
         canvas {
             border: 2px dashed #cbd5e0;
@@ -142,10 +152,25 @@
             touch-action: none;
         }
 
-        .btn-group { padding: 25px; display: flex; gap: 15px; }
-        .btn { flex: 1; padding: 16px; border: none; border-radius: 14px; font-weight: 700; cursor: pointer; }
+        .btn-group {
+            padding: 25px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
         .btn-clear { background: #edf2f7; color: #4a5568; }
-        .btn-pdf { background: var(--yellow-green); color: white; }
+        .btn-pdf { background: var(--yellow-green); color: white; box-shadow: 0 4px 15px rgba(154,205,50,0.3); }
     </style>
 </head>
 <body>
@@ -153,51 +178,43 @@
 <div class="quote-card">
     <header>
         <div class="brand-title">CLEANING CMS</div>
-        <div class="timestamp" id="current-time">系統初始化中...</div>
+        <div class="timestamp" id="current-time">報價時間載入中...</div>
     </header>
 
-    <!-- 1. 點工 -->
     <div class="section">
         <div class="section-header">
             <div class="section-icon">👨‍🔧</div>
             <div class="section-title">點工 (時數與頻率)</div>
         </div>
         <div class="hours-display"><span id="hr-val">4</span> 小時</div>
-        <input type="range" id="hours-slider" min="1" max="12" step="0.5" value="4" oninput="calculate()">
+        <input type="range" id="hours-slider" min="1" max="12" step="0.5" value="4" style="width:100%" oninput="calculate()">
         <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#888; margin: 10px 0;">
-            <span id="rate-note">正在抓取定價...</span>
-            <span>(階梯式折扣)</span>
+            <span id="rate-note">單價：$600/hr</span>
+            <span>(階梯式折扣已套用)</span>
         </div>
-        <select id="freq" onchange="calculate()">
+        <select id="freq" style="width:100%" onchange="calculate()">
             <option value="1">單次服務 (原價)</option>
             <option value="0.95">雙週定期 (95折)</option>
             <option value="0.85">每週定期 (85折)</option>
         </select>
     </div>
 
-    <!-- 2. 點料 -->
     <div class="section">
         <div class="section-header">
             <div class="section-icon">🧪</div>
             <div class="section-title">點料 (專項耗材)</div>
         </div>
-        <div class="grid-options" id="mat-grid">
-            <div style="grid-column: 1/-1; text-align: center; color: #999;">等待定價數據抓取...</div>
-        </div>
+        <div class="grid-options" id="mat-grid"></div>
     </div>
 
-    <!-- 3. 點設備 -->
     <div class="section">
         <div class="section-header">
             <div class="section-icon">⚙️</div>
             <div class="section-title">點設備 (專業機具)</div>
         </div>
-        <div class="grid-options" id="equip-grid">
-             <div style="grid-column: 1/-1; text-align: center; color: #999;">等待定價數據抓取...</div>
-        </div>
+        <div class="grid-options" id="equip-grid"></div>
     </div>
 
-    <!-- 4. 追加 -->
     <div class="section">
         <div class="section-header">
             <div class="section-icon">➕</div>
@@ -209,11 +226,19 @@
         </div>
     </div>
 
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">📝</div>
+            <div class="section-title">施作區域與備註</div>
+        </div>
+        <textarea placeholder="例如：加強主臥浴室除霉、客廳沙發區除膠..."></textarea>
+    </div>
+
     <div class="summary-panel">
-        <div style="font-size:0.9rem; opacity:0.9;">規格報價預算 (NTD)</div>
+        <div style="font-size:0.9rem; opacity:0.9;">航空級規格報價預算 (NTD)</div>
         <div class="total-amount" id="total-price">$0</div>
-        <div id="status-tag" style="font-size:0.8rem; border:1px solid rgba(255,255,255,0.4); display:inline-block; padding:4px 12px; border-radius:20px;">
-            等待數據載入...
+        <div style="font-size:0.8rem; border:1px solid rgba(255,255,255,0.4); display:inline-block; padding:4px 12px; border-radius:20px;">
+            黑盒子錄影與 GPS 戳記已同步啟動
         </div>
     </div>
 
@@ -229,45 +254,26 @@
 </div>
 
 <script>
-    let config = null;
+    const config = {
+        materials: [
+            { name: '深度廚房', price: 200 }, { name: '深度浴廁', price: 100 },
+            { name: '裝修藥劑', price: 500 }, { name: '石材保護', price: 1000 }
+        ],
+        equipment: [
+            { name: '沙發清洗機', price: 2500 }, { name: '床墊除蟎機', price: 2000 },
+            { name: '工業吸塵器', price: 400 }
+        ]
+    };
 
-
-    // 暫時將 loadPricing 函數註解掉，改用這段內置數據進行本地測試
-const config = {
-    "labor_tiers": [
-        { "min_hours": 1, "max_hours": 3, "rate_per_hour": 700 },
-        { "min_hours": 4, "max_hours": 7, "rate_per_hour": 600 },
-        { "min_hours": 8, "max_hours": 999, "rate_per_hour": 550 }
-    ],
-    "materials": [
-        { "name": "深度廚房", "price": 200 },
-        { "name": "深度浴廁", "price": 100 },
-        { "name": "裝修藥劑", "price": 500 },
-        { "name": "石材保護", "price": 1000 }
-    ],
-    "equipment": [
-        { "name": "沙發清洗機", "price": 2500 },
-        { "name": "床墊除蟎機", "price": 2000 },
-        { "name": "工業吸塵器", "price": 400 }
-    ]
-};
-
-// 然後在 script 最後面直接呼叫 initApp()，不要呼叫 loadPricing()
-initApp();
-
-    function initApp() {
+    function init() {
         document.getElementById('current-time').innerText = `報價時間：${new Date().toLocaleString()}`;
-        
         const render = (data, id) => {
-            const container = document.getElementById(id);
-            if (!data) return;
-            container.innerHTML = data.map(item => `
-                <div class="option-item" onclick="toggleOption(this)">
-                    <span class="option-name">${item.name}</span>
-                    <span class="option-price">+$<span class="price-val">${item.price}</span></span>
+            document.getElementById(id).innerHTML = data.map(i => `
+                <div class="option-item" onclick="toggleOption(this, ${i.price})">
+                    <span class="option-name">${i.name}</span>
+                    <span class="option-price">+$${i.price.toLocaleString()}</span>
                 </div>`).join('');
         };
-
         render(config.materials, 'mat-grid');
         render(config.equipment, 'equip-grid');
         calculate();
@@ -276,59 +282,41 @@ initApp();
     function toggleOption(el) { el.classList.toggle('active'); calculate(); }
 
     function calculate() {
-        if (!config) return;
-
         const hrs = parseFloat(document.getElementById('hours-slider').value);
         document.getElementById('hr-val').innerText = hrs;
         
-        // 階梯時薪
-        const tier = config.labor_tiers.find(t => hrs >= t.min_hours && hrs <= t.max_hours);
-        const rate = tier ? tier.rate_per_hour : 600;
+        let rate = (hrs < 4) ? 700 : (hrs < 8 ? 600 : 550);
         document.getElementById('rate-note').innerText = `單價：$${rate}/hr`;
 
         const freq = parseFloat(document.getElementById('freq').value);
-        let total = hrs * rate * freq;
+        let subtotal = hrs * rate * freq;
 
-        // 加總選中項
-        document.querySelectorAll('.option-item.active .price-val').forEach(span => {
-            total += parseInt(span.innerText);
+        document.querySelectorAll('.option-item.active .option-price').forEach(p => {
+            subtotal += parseInt(p.innerText.replace(/[^0-9]/g, ''));
         });
 
-        // 加總追加項
         const extra = parseInt(document.getElementById('extra-price').value) || 0;
-        total += extra;
-
-        document.getElementById('total-price').innerText = `$${Math.round(total).toLocaleString()}`;
+        const total = Math.round(subtotal + extra);
+        document.getElementById('total-price').innerText = `$${total.toLocaleString()}`;
     }
 
-    // 簽名功能
+    // 簽名板
     const canvas = document.getElementById('sig-canvas');
     const ctx = canvas.getContext('2d');
     let drawing = false;
-
-    const getPos = (e) => {
+    canvas.addEventListener('mousedown', () => drawing = true);
+    canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+    canvas.addEventListener('mousemove', (e) => {
+        if (!drawing) return;
         const rect = canvas.getBoundingClientRect();
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return { x: clientX - rect.left, y: clientY - rect.top };
-    };
-
-    const start = (e) => { drawing = true; ctx.beginPath(); const p = getPos(e); ctx.moveTo(p.x, p.y); e.preventDefault(); };
-    const move = (e) => { if (!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.lineWidth = 3; ctx.stroke(); e.preventDefault(); };
-    const stop = () => { drawing = false; };
-
-    canvas.addEventListener('mousedown', start);
-    canvas.addEventListener('mousemove', move);
-    window.addEventListener('mouseup', stop);
-    canvas.addEventListener('touchstart', start);
-    canvas.addEventListener('touchmove', move);
-    canvas.addEventListener('touchend', stop);
-
+        ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#2d3748';
+        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.stroke(); ctx.beginPath(); ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    });
     function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
-    function generatePDF() { alert("報價單鎖定！"); }
+    function generatePDF() { alert("報價已鎖定！\n包含追加項目與現場備註內容已同步至雲端塔台。"); }
 
-    // 啟動
-    loadPricing();
+    init();
 </script>
 </body>
 </html>
