@@ -1,0 +1,24 @@
+{
+  "labor_tiers": [
+    { "min_hours": 1, "max_hours": 3, "rate_per_hour": 700, "label": "短程航線 (1-3hr)" },
+    { "min_hours": 4, "max_hours": 7, "rate_per_hour": 600, "label": "標準航線 (4-7hr)" },
+    { "min_hours": 8, "max_hours": 999, "rate_per_hour": 550, "label": "長程航線 (8hr+)" }
+  ],
+  "frequency_discounts": [
+    { "id": "once", "label": "單次服務 (原價)", "multiplier": 1.0 },
+    { "id": "biweekly", "label": "雙週一次 (95折)", "multiplier": 0.95 },
+    { "id": "weekly", "label": "每週一次 (85折)", "multiplier": 0.85 }
+  ],
+  "materials": [
+    { "id": "kitchen", "name": "深度廚房 (藥劑費)", "price": 200 },
+    { "id": "bathroom", "name": "深度浴廁 (水垢費)", "price": 100 },
+    { "id": "pets", "name": "寵物友善 (除味費)", "price": 150 },
+    { "id": "construction", "name": "裝修細清 (專業藥劑包)", "price": 500 },
+    { "id": "stone", "name": "特殊石材養護", "price": 1000 }
+  ],
+  "equipment": [
+    { "id": "sofa", "name": "布沙發清洗機", "price": 2500 },
+    { "id": "mattress", "name": "床墊深層除蟎機", "price": 2000 },
+    { "id": "vacuum", "name": "工業級吸塵器 (濾網損耗)", "price": 400 }
+  ]
+}
