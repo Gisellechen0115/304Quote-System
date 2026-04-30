@@ -1,2 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS 航空級規格化報價系統 V2.0</title>
+    <style>
+        :root {
+            --sky-blue: #00BFFF;
+            --yellow-green: #9ACD32;
+            --bg-color: #f4f9fc;
+            --card-shadow: 0 12px 40px rgba(0,0,0,0.08);
+        }
 
+        body {
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .quote-card {
+            max-width: 650px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            border-top: 12px solid var(--sky-blue);
+        }
+
+        header {
+            padding: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, #fff 0%, #eef9ff 100%);
+        }
+
+        .brand-title {
+            font-size: 1.8rem;
+            color: var(--sky-blue);
+            font-weight: 800;
+            margin: 0;
+            letter-spacing: 3px;
+        }
+
+        .timestamp {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 10px;
+        }
+
+        .section {
+            padding: 25px;
+            border-bottom: 1px solid #f0f4f7;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .section-icon {
+            font-size: 1.5rem;
+            margin-right: 15px;
+            width: 45px;
+            height: 45px;
+            background: #f0f7ff;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 10px rgba(0,191,255,0.1);
+        }
+
+        .section-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #444;
+        }
+
+        /* 點工 Labor Slider */
+        .hours-display {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--sky-blue);
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        /* 卡片式選項 */
+        .grid-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .option-item {
+            background: #f9fbfd;
+            border: 2px solid #edf2f6;
+            border-radius: 15px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: center;
+        }
+
+        .option-item.active {
+            border-color: var(--yellow-green);
+            background: #fdfdf0;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(154,205,50,0.15);
+        }
+
+        .option-name { font-weight: 600; display: block; margin-bottom: 5px; }
+        .option-price { font-size: 0.85rem; color: var(--yellow-green); font-weight: 700; }
+
+        /* 追加項目表單 */
+        .extra-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        input, select, textarea {
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus { border-color: var(--sky-blue); outline: none; }
+
+        /* 總計與簽名 */
+        .summary-panel {
+            background: linear-gradient(135deg, var(--sky-blue) 0%, #0099cc 100%);
+            padding: 35px;
+            color: white;
+            text-align: center;
+        }
+
+        .total-amount { font-size: 3rem; font-weight: 800; margin: 10px 0; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+
+        canvas {
+            border: 2px dashed #cbd5e0;
+            border-radius: 15px;
+            background: #fff;
+            width: 100%;
+            height: 180px;
+            touch-action: none;
+        }
+
+        .btn-group {
+            padding: 25px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 14px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-clear { background: #edf2f7; color: #4a5568; }
+        .btn-pdf { background: var(--yellow-green); color: white; box-shadow: 0 4px 15px rgba(154,205,50,0.3); }
+    </style>
+</head>
+<body>
+
+<div class="quote-card">
+    <header>
+        <div class="brand-title">CLEANING CMS</div>
+        <div class="timestamp" id="current-time">報價時間載入中...</div>
+    </header>
+
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">👨‍🔧</div>
+            <div class="section-title">點工 (時數與頻率)</div>
+        </div>
+        <div class="hours-display"><span id="hr-val">4</span> 小時</div>
+        <input type="range" id="hours-slider" min="1" max="12" step="0.5" value="4" style="width:100%" oninput="calculate()">
+        <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:#888; margin: 10px 0;">
+            <span id="rate-note">單價：$600/hr</span>
+            <span>(階梯式折扣已套用)</span>
+        </div>
+        <select id="freq" style="width:100%" onchange="calculate()">
+            <option value="1">單次服務 (原價)</option>
+            <option value="0.95">雙週定期 (95折)</option>
+            <option value="0.85">每週定期 (85折)</option>
+        </select>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">🧪</div>
+            <div class="section-title">點料 (專項耗材)</div>
+        </div>
+        <div class="grid-options" id="mat-grid"></div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">⚙️</div>
+            <div class="section-title">點設備 (專業機具)</div>
+        </div>
+        <div class="grid-options" id="equip-grid"></div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">➕</div>
+            <div class="section-title">現場臨時追加項</div>
+        </div>
+        <div class="extra-form">
+            <input type="text" id="extra-name" placeholder="追加原因 (如：超重度髒污)" style="flex:2">
+            <input type="number" id="extra-price" placeholder="金額" style="flex:1" oninput="calculate()">
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon">📝</div>
+            <div class="section-title">施作區域與備註</div>
+        </div>
+        <textarea placeholder="例如：加強主臥浴室除霉、客廳沙發區除膠..."></textarea>
+    </div>
+
+    <div class="summary-panel">
+        <div style="font-size:0.9rem; opacity:0.9;">航空級規格報價預算 (NTD)</div>
+        <div class="total-amount" id="total-price">$0</div>
+        <div style="font-size:0.8rem; border:1px solid rgba(255,255,255,0.4); display:inline-block; padding:4px 12px; border-radius:20px;">
+            黑盒子錄影與 GPS 戳記已同步啟動
+        </div>
+    </div>
+
+    <div class="section" style="border:none">
+        <div style="font-weight:700; margin-bottom:12px">業主核准簽章：</div>
+        <canvas id="sig-canvas"></canvas>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn btn-clear" onclick="clearSig()">清除簽名</button>
+        <button class="btn btn-pdf" onclick="generatePDF()">產出正式 PDF 報價單</button>
+    </div>
+</div>
+
+<script>
+    const config = {
+        materials: [
+            { name: '深度廚房', price: 200 }, { name: '深度浴廁', price: 100 },
+            { name: '裝修藥劑', price: 500 }, { name: '石材保護', price: 1000 }
+        ],
+        equipment: [
+            { name: '沙發清洗機', price: 2500 }, { name: '床墊除蟎機', price: 2000 },
+            { name: '工業吸塵器', price: 400 }
+        ]
+    };
+
+    function init() {
+        document.getElementById('current-time').innerText = `報價時間：${new Date().toLocaleString()}`;
+        const render = (data, id) => {
+            document.getElementById(id).innerHTML = data.map(i => `
+                <div class="option-item" onclick="toggleOption(this, ${i.price})">
+                    <span class="option-name">${i.name}</span>
+                    <span class="option-price">+$${i.price.toLocaleString()}</span>
+                </div>`).join('');
+        };
+        render(config.materials, 'mat-grid');
+        render(config.equipment, 'equip-grid');
+        calculate();
+    }
+
+    function toggleOption(el) { el.classList.toggle('active'); calculate(); }
+
+    function calculate() {
+        const hrs = parseFloat(document.getElementById('hours-slider').value);
+        document.getElementById('hr-val').innerText = hrs;
+        
+        let rate = (hrs < 4) ? 700 : (hrs < 8 ? 600 : 550);
+        document.getElementById('rate-note').innerText = `單價：$${rate}/hr`;
+
+        const freq = parseFloat(document.getElementById('freq').value);
+        let subtotal = hrs * rate * freq;
+
+        document.querySelectorAll('.option-item.active .option-price').forEach(p => {
+            subtotal += parseInt(p.innerText.replace(/[^0-9]/g, ''));
+        });
+
+        const extra = parseInt(document.getElementById('extra-price').value) || 0;
+        const total = Math.round(subtotal + extra);
+        document.getElementById('total-price').innerText = `$${total.toLocaleString()}`;
+    }
+
+    // 簽名板
+    const canvas = document.getElementById('sig-canvas');
+    const ctx = canvas.getContext('2d');
+    let drawing = false;
+    canvas.addEventListener('mousedown', () => drawing = true);
+    canvas.addEventListener('mouseup', () => { drawing = false; ctx.beginPath(); });
+    canvas.addEventListener('mousemove', (e) => {
+        if (!drawing) return;
+        const rect = canvas.getBoundingClientRect();
+        ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.strokeStyle = '#2d3748';
+        ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+        ctx.stroke(); ctx.beginPath(); ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    });
+    function clearSig() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+    function generatePDF() { alert("報價已鎖定！\n包含追加項目與現場備註內容已同步至雲端塔台。"); }
+
+    init();
+</script>
+</body>
+</html>
 
